@@ -1,0 +1,11 @@
+.bg-navbar {
+    background-color: rgb(66, 95, 147);
+}
+
+.navbar-brand {
+    margin-left: auto;
+}
+
+.form-control {
+    max-width: 400px;
+}

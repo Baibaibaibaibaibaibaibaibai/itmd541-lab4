@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunrise Sunset Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container my-5 py-3 bg-light shadow rounded" style="max-width: 600px; min-height: 76vh">
+    <nav class="navbar navbar-expand-lg navbar-light bg-navbar rounded mb-4">
+        <img src="img/img.png" alt="">
+        <a class="navbar-brand text-white navbar-brand-c" href="#">Sunrise Sunset Blackboard</a>
+    </nav>
+
+    <div id="searchSection">
+        <div class="row">
+            <div class="col-sm-8">
+                <input type="text" id="locationInput" placeholder="Enter location" class="form-control">
+            </div>
+            <div class="col-sm-4">
+                <button onclick="searchLocation()" class="btn mt-2 mt-sm-0" style="background-color: #91AA9D">Search
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="results" class="mt-4"></div>
+</div>
+
+<footer class="footer mt-5 py-3 text-white text-center" style="background-color: rgb(66, 95, 147); margin-top: auto">
+    <div>&copy; 2023 Sunrise Sunset Dashboard</div>
+    <div>Powered by <a href="https://sunrisesunset.io/" target="_blank" class="text-white">SunriseSunset.io</a></div>
+</footer>
+
+<script>
+    function searchLocation() {
+        const location = document.getElementById('locationInput').value;
+        fetch(`https://geocode.maps.co/search?q=${location}`)
+            .then(response => response.json())
+            .then(data => {
+                const coords = data[0];
+                if (!coords) {
+                    alert('Location not found.');
+                    return;
+                }
+                Promise.all([
+                    fetchSunriseSunset(coords.lat, coords.lon, getTodayDate()),
+                    fetchSunriseSunset(coords.lat, coords.lon, getTomorrowDate())
+                ]).then(([todayData, tomorrowData]) => {
+                    displayResults(todayData, tomorrowData, coords.display_name);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function fetchSunriseSunset(lat, lon, date) {
+        return fetch(`https://api.sunrisesunset.io/json?lat=${lat}&lng=${lon}&date=${date}`)
+            .then(response => response.json())
+            .then(data => data.results);
+    }
+
+    function displayResults(todayData, tomorrowData, locationName) {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+            <h3>${locationName}</h3>
+            <br>
+            <h4>Today's Sunrise and Sunset</h4>
+            <p>Sunrise: ${todayData.sunrise}</p>
+            <p>Sunset: ${todayData.sunset}</p>
+            <p>Solar Noon: ${todayData.solar_noon}</p>
+            <p>Day Length: ${todayData.day_length}</p>
+            <p>Time Zone: ${todayData.timezone}</p>
+            <br>
+            <h4>Tomorrow's Sunrise and Sunset</h4>
+            <p>Sunrise: ${tomorrowData.sunrise}</p>
+            <p>Sunset: ${tomorrowData.sunset}</p>
+            <p>Solar Noon: ${tomorrowData.solar_noon}</p>
+            <p>Day Length: ${tomorrowData.day_length}</p>
+            <p>Time Zone: ${tomorrowData.timezone}</p>
+        `;
+    }
+
+    function getTodayDate() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function getTomorrowDate() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow.toISOString().split('T')[0];
+    }
+</script>
+
+<!-- Include Bootstrap and jQuery -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
